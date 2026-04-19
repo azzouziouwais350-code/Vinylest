@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0a0a0a"/>
+  <circle cx="256" cy="256" r="220" fill="#1a1a1a" stroke="#333" stroke-width="4"/>
+  <!-- Grooves -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
+  <circle cx="256" cy="256" r="150" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="3"/>
+  <circle cx="256" cy="256" r="120" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="3"/>
+  <circle cx="256" cy="256" r="95" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="3"/>
+  <!-- Label -->
+  <circle cx="256" cy="256" r="72" fill="#e8e8e8"/>
+  <text x="256" y="250" text-anchor="middle" font-family="serif" font-size="28" font-weight="bold" fill="#0a0a0a">V</text>
+  <text x="256" y="272" text-anchor="middle" font-family="monospace" font-size="11" fill="#555">VINYL</text>
+  <!-- Center hole -->
+  <circle cx="256" cy="256" r="10" fill="#0a0a0a"/>
+</svg>
