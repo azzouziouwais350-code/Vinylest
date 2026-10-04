@@ -1,4 +1,4 @@
-const CACHE = 'dream.player-v2';
+const CACHE = 'dream.player-v4';
 const FILES = [
   './',
   './index.html',

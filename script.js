@@ -8,6 +8,27 @@ let shuffle = false;
 let repeat = 0;             // 0 off, 1 tout, 2 une piste
 let seeking = false;
 
+/* ---------- Icônes pixel (SVG) ---------- */
+const ICONS = {
+  play:    ["..#.....","..##....","..###...","..####..","..####..","..###...","..##....","..#....."],
+  pause:   [".##..##.",".##..##.",".##..##.",".##..##.",".##..##.",".##..##.",".##..##.",".##..##."],
+  prev:    ["#.....#.","#....##.","#...###.","#..####.","#..####.","#...###.","#....##.","#.....#."],
+  next:    [".#.....#",".##....#",".###...#",".####..#",".####..#",".###...#",".##....#",".#.....#"],
+  shuffle: ["..........","........#.","###....###","...#..#.#.","....##....","....##....","...#..#.#.","###....###","........#.",".........."],
+  repeat:  ["..........",".......#..","#########.","#......#.#","#........#","#........#","#.#......#",".#########","..#.......",".........."]
+};
+function icon(name) {
+  const g = ICONS[name];
+  let d = '';
+  g.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#') d += `M${x} ${y}h1v1h-1z`; }));
+  return `<svg viewBox="0 0 ${g[0].length} ${g.length}" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><path d="${d}"/></svg>`;
+}
+$('#shuffle').innerHTML = icon('shuffle');
+$('#prev').innerHTML = icon('prev');
+$('#next').innerHTML = icon('next');
+$('#repeat').innerHTML = icon('repeat');
+$('#play').innerHTML = icon('play');
+
 /* ---------- Étoiles ---------- */
 for (let i = 0; i < 30; i++) {
   const s = document.createElement('div');
@@ -30,6 +51,20 @@ document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
 /* ---------- Utilitaires ---------- */
 const fmt = s => isNaN(s) ? '0:00' : Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
 const clean = n => n.replace(/\.[^.]+$/, '').replace(/_+/g, ' ');
+
+/* Titre : défile seulement s'il est trop long pour l'écran */
+function setTitle(txt) {
+  const box = $('#now'), el = $('#nowTitle');
+  el.textContent = txt;
+  box.classList.remove('scroll');
+  el.style.animationDuration = '';
+  requestAnimationFrame(() => {
+    if (el.offsetWidth > box.clientWidth) {
+      el.style.animationDuration = Math.max(8, txt.length * 0.4) + 's';
+      box.classList.add('scroll');
+    }
+  });
+}
 
 /* ---------- Import de fichiers ---------- */
 function addFiles(files) {
@@ -70,7 +105,8 @@ function removeTrack(i) {
   if (i === idx) {
     audio.pause(); audio.removeAttribute('src'); idx = -1;
     setPlayIcon();
-    $('#nowTitle').textContent = '— aucune piste —';
+    setTitle('— aucune piste —');
+    $('#cur').textContent = '0:00'; $('#dur').textContent = '0:00'; $('#seek').value = 0;
     if (tracks.length) load(Math.min(i, tracks.length - 1), false);
   } else if (i < idx) idx--;
   renderList();
@@ -80,14 +116,14 @@ function removeTrack(i) {
 function load(i, autoplay) {
   idx = i;
   audio.src = tracks[i].url;
-  $('#nowTitle').textContent = '♪ ' + tracks[i].name + ' ♪';
+  setTitle('♪ ' + tracks[i].name);
   renderList();
   if (autoplay) play();
   if ('mediaSession' in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({ title: tracks[i].name, artist: 'Vinylest' });
   }
 }
-function setPlayIcon() { $('#play').textContent = audio.paused ? '▶' : '❚❚'; }
+function setPlayIcon() { $('#play').innerHTML = icon(audio.paused ? 'play' : 'pause'); }
 function play() { initAudioCtx(); audio.play().catch(() => {}); }
 function toggle() { if (idx === -1) return; audio.paused ? play() : audio.pause(); }
 
@@ -115,11 +151,11 @@ function prev() {
 $('#play').onclick = toggle;
 $('#next').onclick = () => next(false);
 $('#prev').onclick = prev;
-$('#shuffle').onclick = e => { shuffle = !shuffle; e.target.classList.toggle('on', shuffle); };
+$('#shuffle').onclick = e => { shuffle = !shuffle; e.currentTarget.classList.toggle('on', shuffle); };
 $('#repeat').onclick = e => {
   repeat = (repeat + 1) % 3;
-  e.target.classList.toggle('on', repeat > 0);
-  e.target.textContent = repeat === 2 ? '1' : '↻';
+  e.currentTarget.classList.toggle('on', repeat > 0);
+  e.currentTarget.classList.toggle('one', repeat === 2);
 };
 
 audio.addEventListener('play', setPlayIcon);
@@ -151,7 +187,7 @@ document.addEventListener('keydown', e => {
   if (e.code === 'ArrowLeft') audio.currentTime -= 5;
 });
 
-/* ---------- Visualiseur pixel ---------- */
+/* ---------- Visualiseur pixel (128x48, blocs de 3px) ---------- */
 let actx, analyser, data, started = false;
 function initAudioCtx() {
   if (started) { if (actx.state === 'suspended') actx.resume(); return; }
@@ -160,6 +196,7 @@ function initAudioCtx() {
     const src = actx.createMediaElementSource(audio);
     analyser = actx.createAnalyser();
     analyser.fftSize = 128;
+    analyser.smoothingTimeConstant = 0.75;
     data = new Uint8Array(analyser.frequencyBinCount);
     src.connect(analyser);
     analyser.connect(actx.destination);
@@ -170,20 +207,25 @@ function initAudioCtx() {
 const cv = $('#viz');
 const c = cv.getContext('2d');
 c.imageSmoothingEnabled = false;
+const BARS = 32, ROWS = 12;
+const level = new Array(BARS).fill(0);
 let t = 0;
 function draw() {
   requestAnimationFrame(draw);
   t++;
   c.fillStyle = '#0a0618';
-  c.fillRect(0, 0, 256, 48);
-  const bars = 32, w = 8;
-  if (analyser) analyser.getByteFrequencyData(data);
-  for (let i = 0; i < bars; i++) {
-    const v = analyser && !audio.paused ? data[i] / 255 : (Math.sin(t / 30 + i / 3) + 1) / 12;
-    const h = Math.max(1, Math.round(v * 12));
+  c.fillRect(0, 0, 128, 48);
+  const live = analyser && !audio.paused;
+  if (live) analyser.getByteFrequencyData(data);
+  for (let i = 0; i < BARS; i++) {
+    const target = live
+      ? Math.min(1, Math.pow(data[i] / 255, 1.4) * 1.5)
+      : (Math.sin(t / 40 + i / 2.5) + 1) / 14;
+    level[i] += (target - level[i]) * 0.35;          // mouvement fluide
+    const h = Math.max(1, Math.round(level[i] * ROWS));
     for (let j = 0; j < h; j++) {
-      c.fillStyle = j > 9 ? '#fff29a' : j > 5 ? '#ff8fd8' : '#7ff5ff';
-      c.fillRect(i * w + 1, 48 - (j + 1) * 4, w - 2, 3);
+      c.fillStyle = j > 8 ? '#fff29a' : j > 4 ? '#ff8fd8' : '#7ff5ff';
+      c.fillRect(i * 4, 48 - (j + 1) * 4, 3, 3);
     }
   }
 }
