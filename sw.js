@@ -1,6 +1,7 @@
-const CACHE = 'dream.player-v4';
+const CACHE = 'dreamplayer-v5';
 const FILES = [
   './',
+  './features.js',
   './index.html',
   './style.css',
   './script.js',

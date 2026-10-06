@@ -120,7 +120,7 @@ function load(i, autoplay) {
   renderList();
   if (autoplay) play();
   if ('mediaSession' in navigator) {
-    navigator.mediaSession.metadata = new MediaMetadata({ title: tracks[i].name, artist: 'Vinylest' });
+    navigator.mediaSession.metadata = new MediaMetadata({ title: tracks[i].name, artist: 'dream.player' });
   }
 }
 function setPlayIcon() { $('#play').innerHTML = icon(audio.paused ? 'play' : 'pause'); }
@@ -258,7 +258,7 @@ function loadSpotify(url) {
   frame.src = e;
   const type = e.split('/embed/')[1].split('/')[0];
   frame.style.height = (type === 'track' || type === 'episode') ? '152px' : '352px';
-  try { localStorage.setItem('vinylest_sp', url); } catch (_) {}
+  try { localStorage.setItem('dream.player_sp', url); } catch (_) {}
 }
 
 presets.forEach(([n, u]) => {
@@ -272,7 +272,7 @@ $('#spGo').onclick = () => loadSpotify($('#spUrl').value);
 $('#spUrl').addEventListener('keydown', e => { if (e.key === 'Enter') loadSpotify(e.target.value); });
 
 let saved = presets[1][1];
-try { saved = localStorage.getItem('vinylest_sp') || saved; } catch (_) {}
+try { saved = localStorage.getItem('dream.player_sp') || saved; } catch (_) {}
 $('#spUrl').value = saved;
 loadSpotify(saved);
 
