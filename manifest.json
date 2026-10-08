@@ -4,8 +4,8 @@
   "description": "lecteur de musique pixel dreamcore en un seul fichier HTML. Importe tes mp3 (glisser-déposer, playlist, visualiseur) ou colle un lien Spotify pour l'écouter directement.",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
+  "background_color": "#07060d",
+"theme_color": "#07060d",
   "orientation": "portrait",
   "icons": [
     {
