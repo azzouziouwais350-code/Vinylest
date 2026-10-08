@@ -1,13 +1,22 @@
-const CACHE = 'dreamplayer-v5';
+const CACHE = 'dreamplayer-v14';
 const FILES = [
   './',
-  './features.js',
-  './index.html',
-  './style.css',
-  './script.js',
-  './manifest.json',
-  './icon.svg',
-  './icon-192.png',
+'./index.html', 
+'./style.css', 
+'./premium.css',
+  './script.js', 
+  './features.js', 
+  './premium.js',
+  './diag.js',
+  './polish.js',
+  './extras.js', 
+  './more.js', 
+  './final.js', 
+  './settings.js', 
+  './layout.js',
+  './manifest.json', 
+  './icon.svg', 
+  './icon-192.png', 
   './icon-512.png'
 ];
 
